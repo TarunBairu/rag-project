@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG Project - Intelligent Document Assistant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.8); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(71, 85, 105, 1); }
+  </style>
+</head>
+<body class="h-full flex overflow-hidden">
+
+  <!-- Left Sidebar (Knowledge Base & Documents) -->
+  <aside class="w-80 md:w-96 flex-shrink-0 bg-slate-900 border-r border-slate-800 flex flex-col h-full">
+    <!-- Brand Header -->
+    <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 font-bold text-lg">
+          ⚡
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-100 text-base leading-tight">RAG Workspace</h1>
+          <p class="text-xs text-slate-400">FastAPI & Vector Search</p>
+        </div>
+      </div>
+      <a href="/docs" target="_blank" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 font-medium transition">
+        API Docs ↗
+      </a>
+    </div>
+
+    <!-- Document Ingestion Area -->
+    <div class="p-4 border-b border-slate-800">
+      <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Upload Documents</h2>
+      <div id="dropZone" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-4 text-center cursor-pointer transition bg-slate-950/40 hover:bg-indigo-950/20 group">
+        <input type="file" id="fileInput" class="hidden" accept=".txt,.pdf,.md,.csv,.docx,.json">
+        <div class="text-2xl mb-1 group-hover:scale-110 transition">📄</div>
+        <p class="text-xs font-medium text-slate-200">Click or drag & drop files</p>
+        <p class="text-[10px] text-slate-400 mt-0.5">Supports PDF, TXT, MD, CSV, DOCX</p>
+      </div>
+      <div id="uploadStatus" class="text-xs mt-2 hidden text-cyan-400 font-medium"></div>
+    </div>
+
+    <!-- Uploaded Documents List -->
+    <div class="flex-1 overflow-y-auto p-4 flex flex-col">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Indexed Documents</h2>
+        <button id="refreshDocsBtn" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium transition">Refresh</button>
+      </div>
+      <div id="docsList" class="space-y-2 flex-1">
+        <!-- Rendered via JS -->
+        <p class="text-xs text-slate-400 text-center py-6">Loading indexed files...</p>
+      </div>
+    </div>
+
+    <!-- System Status Footer -->
+    <div class="p-3.5 bg-slate-950/70 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="systemStatusText">System Online</span>
+      </div>
+      <span id="vectorCountBadge" class="bg-slate-800 px-2 py-0.5 rounded text-[11px] text-slate-300 font-mono">0 vectors</span>
+    </div>
+  </aside>
+
+  <!-- Main Chat Area -->
+  <main class="flex-1 flex flex-col h-full bg-slate-950 relative">
+    <!-- Top Bar -->
+    <header class="h-16 border-b border-slate-800 flex items-center justify-between px-6 bg-slate-900/50 backdrop-blur">
+      <div class="flex items-center gap-3">
+        <div class="text-sm font-semibold text-slate-200">Knowledge Base Assistant</div>
+        <span id="modelPill" class="text-[11px] bg-indigo-950 text-indigo-300 border border-indigo-800 px-2.5 py-0.5 rounded-full font-mono">
+          Loading model...
+        </span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="clearChatBtn" class="text-xs text-slate-400 hover:text-rose-400 transition flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-slate-900">
+          Clear Conversation
+        </button>
+      </div>
+    </header>
+
+    <!-- Messages Container -->
+    <div id="chatContainer" class="flex-1 overflow-y-auto p-6 space-y-6">
+      <!-- Welcome Hero (shown when empty) -->
+      <div id="welcomeHero" class="max-w-2xl mx-auto text-center py-12 px-4">
+        <div class="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-3xl mx-auto mb-4">
+          💬
+        </div>
+        <h2 class="text-xl font-bold text-slate-100 mb-2">Ask Anything About Your Documents</h2>
+        <p class="text-sm text-slate-400 mb-6 max-w-md mx-auto">
+          Upload documents on the left and ask questions. Answers are strictly grounded in your files with full source citations.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-left max-w-lg mx-auto">
+          <button class="prompt-chip p-3 rounded-xl bg-slate-900/80 hover:bg-indigo-950/40 border border-slate-800 hover:border-indigo-600/50 text-xs text-slate-300 transition" onclick="usePrompt(this.innerText)">
+            "How much is the annual wellness stipend?"
+          </button>
+          <button class="prompt-chip p-3 rounded-xl bg-slate-900/80 hover:bg-indigo-950/40 border border-slate-800 hover:border-indigo-600/50 text-xs text-slate-300 transition" onclick="usePrompt(this.innerText)">
+            "How many days per week can employees work remotely?"
+          </button>
+          <button class="prompt-chip p-3 rounded-xl bg-slate-900/80 hover:bg-indigo-950/40 border border-slate-800 hover:border-indigo-600/50 text-xs text-slate-300 transition" onclick="usePrompt(this.innerText)">
+            "Who were the astronauts on the Apollo 11 mission?"
+          </button>
+          <button class="prompt-chip p-3 rounded-xl bg-slate-900/80 hover:bg-indigo-950/40 border border-slate-800 hover:border-indigo-600/50 text-xs text-slate-300 transition" onclick="usePrompt(this.innerText)">
+            "What was the liftoff thrust of the Saturn V rocket?"
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Input Area -->
+    <div class="p-4 border-t border-slate-800 bg-slate-900/30">
+      <div class="max-w-3xl mx-auto">
+        <form id="chatForm" class="relative flex items-center">
+          <input
+            type="text"
+            id="queryInput"
+            placeholder="Ask a question based on uploaded documents..."
+            autocomplete="off"
+            class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl pl-4 pr-24 py-3.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition shadow-lg shadow-black/20"
+          >
+          <button
+            type="submit"
+            id="sendBtn"
+            class="absolute right-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow"
+          >
+            <span>Send</span>
+            <span>↵</span>
+          </button>
+        </form>
+        <div class="flex justify-between items-center text-[11px] text-slate-500 mt-2 px-1">
+          <span>Press <kbd class="px-1 py-0.5 bg-slate-800 rounded text-slate-400">Enter</kbd> to submit</span>
+          <span id="charCount">0 chars</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const chatContainer = document.getElementById('chatContainer');
+    const welcomeHero = document.getElementById('welcomeHero');
+    const chatForm = document.getElementById('chatForm');
+    const queryInput = document.getElementById('queryInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const docsList = document.getElementById('docsList');
+    const modelPill = document.getElementById('modelPill');
+    const vectorCountBadge = document.getElementById('vectorCountBadge');
+    const charCount = document.getElementById('charCount');
+    const clearChatBtn = document.getElementById('clearChatBtn');
+
+    // Update char counter
+    queryInput.addEventListener('input', () => {
+      charCount.innerText = `${queryInput.value.length} chars`;
+    });
+
+    // Clear chat
+    clearChatBtn.addEventListener('click', () => {
+      chatContainer.innerHTML = '';
+      chatContainer.appendChild(welcomeHero);
+      welcomeHero.classList.remove('hidden');
+    });
+
+    // Quick prompt chip
+    function usePrompt(text) {
+      const clean = text.replace(/^"|"$/g, '');
+      queryInput.value = clean;
+      queryInput.focus();
+      chatForm.dispatchEvent(new Event('submit'));
+    }
+
+    // Refresh Documents & Status
+    async function fetchStatusAndDocs() {
+      try {
+        const readyRes = await fetch('/health/ready');
+        if (readyRes.ok) {
+          const readyData = await readyRes.json();
+          vectorCountBadge.innerText = `${readyData.total_vectors || 0} vectors`;
+        }
+
+        const docsRes = await fetch('/api/v1/documents');
+        if (docsRes.ok) {
+          const docsData = await docsRes.json();
+          renderDocs(docsData.documents);
+        }
+      } catch (err) {
+        console.error('Failed to fetch status:', err);
+      }
+    }
+
+    function renderDocs(docs) {
+      if (!docs || docs.length === 0) {
+        docsList.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">No documents indexed yet. Upload one above!</p>`;
+        return;
+      }
+
+      docsList.innerHTML = docs.map(doc => `
+        <div class="p-3 bg-slate-950/60 border border-slate-800 rounded-xl hover:border-slate-700 transition flex items-start justify-between gap-2 group">
+          <div class="overflow-hidden">
+            <p class="text-xs font-semibold text-slate-200 truncate" title="${doc.filename}">${doc.filename}</p>
+            <div class="flex items-center gap-2 mt-1 text-[10px] text-slate-400 font-mono">
+              <span>${doc.chunk_count} chunks</span>
+              <span>•</span>
+              <span>${doc.file_size_formatted}</span>
+            </div>
+          </div>
+          <button onclick="deleteDocument('${doc.id}', '${doc.filename}')" class="text-slate-500 hover:text-rose-400 p-1 opacity-60 group-hover:opacity-100 transition" title="Delete document">
+            ✕
+          </button>
+        </div>
+      `).join('');
+    }
+
+    async function deleteDocument(id, filename) {
+      if (!confirm(`Delete "${filename}" and its vector embeddings?`)) return;
+      try {
+        const res = await fetch(`/api/v1/documents/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          fetchStatusAndDocs();
+        }
+      } catch (err) {
+        alert('Failed to delete document: ' + err);
+      }
+    }
+
+    // File Upload handling
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-indigo-500'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-indigo-500'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-indigo-500');
+      if (e.dataTransfer.files.length > 0) uploadFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length > 0) uploadFile(fileInput.files[0]);
+    });
+
+    async function uploadFile(file) {
+      uploadStatus.classList.remove('hidden');
+      uploadStatus.innerText = `Uploading and indexing ${file.name}...`;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('/api/v1/documents/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+        if (res.ok) {
+          uploadStatus.innerText = `✓ ${data.filename} indexed (${data.chunk_count} chunks)`;
+          setTimeout(() => uploadStatus.classList.add('hidden'), 4000);
+          fetchStatusAndDocs();
+        } else {
+          uploadStatus.innerText = `Error: ${data.detail || data.error?.message || 'Upload failed'}`;
+        }
+      } catch (err) {
+        uploadStatus.innerText = 'Upload failed: ' + err.message;
+      }
+    }
+
+    // Submit Chat Query
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const query = queryInput.value.trim();
+      if (!query) return;
+
+      welcomeHero.classList.add('hidden');
+      queryInput.value = '';
+      charCount.innerText = '0 chars';
+      sendBtn.disabled = true;
+
+      // 1. Render User Message
+      appendUserMessage(query);
+
+      // 2. Render Assistant Placeholder
+      const assistantBox = appendAssistantMessage();
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      try {
+        const res = await fetch('/api/v1/rag/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query, top_k: 4 }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          modelPill.innerText = `Model: ${data.model}`;
+          renderAssistantResponse(assistantBox, data);
+        } else {
+          assistantBox.querySelector('.content-area').innerHTML = `
+            <div class="text-rose-400 font-medium">Error: ${data.detail || data.error?.message || 'Failed to generate answer'}</div>
+          `;
+        }
+      } catch (err) {
+        assistantBox.querySelector('.content-area').innerHTML = `
+          <div class="text-rose-400 font-medium">Network error: ${err.message}</div>
+        `;
+      } finally {
+        sendBtn.disabled = false;
+        queryInput.focus();
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    });
+
+    function appendUserMessage(text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'flex justify-end';
+      msgDiv.innerHTML = `
+        <div class="max-w-2xl bg-indigo-600 text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-md text-sm leading-relaxed">
+          ${escapeHtml(text)}
+        </div>
+      `;
+      chatContainer.appendChild(msgDiv);
+    }
+
+    function appendAssistantMessage() {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'flex gap-3 max-w-3xl';
+      msgDiv.innerHTML = `
+        <div class="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-indigo-400 flex items-center justify-center font-bold text-sm flex-shrink-0">
+          ⚡
+        </div>
+        <div class="flex-1 bg-slate-900/90 border border-slate-800 rounded-2xl rounded-tl-sm p-4 shadow-md text-sm">
+          <div class="content-area text-slate-200 leading-relaxed space-y-2">
+            <span class="inline-flex items-center gap-1.5 text-xs text-slate-400">
+              <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping"></span> Searching knowledge base & generating response...
+            </span>
+          </div>
+          <div class="sources-area mt-4 pt-3 border-t border-slate-800/80 hidden"></div>
+          <div class="metrics-area mt-2 text-[10px] text-slate-500 font-mono flex items-center justify-between"></div>
+        </div>
+      `;
+      chatContainer.appendChild(msgDiv);
+      return msgDiv;
+    }
+
+    function renderAssistantResponse(container, data) {
+      const contentArea = container.querySelector('.content-area');
+      const sourcesArea = container.querySelector('.sources-area');
+      const metricsArea = container.querySelector('.metrics-area');
+
+      // Format answer lines & citations
+      let formattedAnswer = escapeHtml(data.answer)
+        .replace(/\n\n/g, '<br><br>')
+        .replace(/\n/g, '<br>')
+        .replace(/\[Source\s*(\d+)\]/gi, '<span class="inline-block px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300 font-mono text-[11px] font-semibold border border-indigo-800">[Source $1]</span>');
+
+      contentArea.innerHTML = formattedAnswer;
+
+      // Sources section
+      if (data.sources && data.sources.length > 0) {
+        sourcesArea.classList.remove('hidden');
+        sourcesArea.innerHTML = `
+          <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <span>📚 Cited Sources (${data.sources.length})</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            ${data.sources.map((src, i) => `
+              <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 transition">
+                <div class="flex items-center justify-between text-[11px] font-medium text-slate-300 mb-1">
+                  <span class="truncate font-semibold text-indigo-300">[${i + 1}] ${escapeHtml(src.filename)}</span>
+                  <span class="text-emerald-400 font-mono text-[10px]">${(src.score * 100).toFixed(1)}% match</span>
+                </div>
+                <p class="text-[11px] text-slate-400 line-clamp-2 leading-snug font-sans">${escapeHtml(src.snippet)}</p>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      metricsArea.innerHTML = `
+        <span>Latency: ${data.latency_ms}ms · Chunks inspected: ${data.context_count}</span>
+        <span>Engine: ${data.model}</span>
+      `;
+    }
+
+    function escapeHtml(text) {
+      return (text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Initialize
+    fetchStatusAndDocs();
+  </script>
+</body>
+</html>

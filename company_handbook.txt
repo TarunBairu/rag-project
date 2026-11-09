@@ -1,0 +1,24 @@
+# TechCorp Global Employee Handbook (2026 Edition)
+
+## Section 1: Working Hours & Remote Work Policy
+TechCorp operates on a flexible hybrid work model. Full-time team members are expected to complete 40 core hours per week. 
+- Core collaboration hours are 10:00 AM to 3:00 PM in the employee's local time zone.
+- Employees may work remotely up to 3 days per week without prior manager approval.
+- Full-time remote arrangements require approval from the Department Vice President and People Operations.
+
+## Section 2: Paid Time Off (PTO) & Sick Leave
+- Standard Vacation: All permanent full-time employees accrue 20 days of paid vacation per calendar year (accrued at 1.67 days per month).
+- Wellness & Sick Days: Employees receive 10 paid wellness/sick days per year, available on January 1st annually.
+- Carryover: A maximum of 5 unused vacation days may be rolled over into the subsequent calendar year. Rollover days must be utilized by March 31st.
+
+## Section 3: Health Insurance & Wellness Stipend
+TechCorp covers 100% of the employee health, dental, and vision insurance premiums, and 75% for eligible dependents under the Premium PPO Plan.
+- Annual Wellness Reimbursement: Each employee is entitled to a $1,200 annual wellness stipend, reimbursable for gym memberships, home office ergonomic equipment, or mental health applications.
+- Submissions must be uploaded via the employee benefits portal with receipts attached within 45 days of purchase.
+
+## Section 4: Equipment & Home Office Setup
+Upon joining, every engineer is issued:
+- One 16-inch Apple MacBook Pro (M3 Max chip, 64 GB unified memory) or a Dell XPS 15 workstation.
+- Two 27-inch 4K external monitors.
+- A one-time $800 home office ergonomics setup budget for desk and chair purchases.
+Company equipment must be returned within 14 business days following the cessation of employment.

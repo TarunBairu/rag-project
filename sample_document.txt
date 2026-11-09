@@ -1,0 +1,22 @@
+# Apollo Spaceflight and Lunar Exploration Manual
+
+## 1. Mission Overview
+Project Apollo was the third United States human spaceflight program carried out by the National Aeronautics and Space Administration (NASA). It succeeded in landing the first humans on the Moon on July 20, 1969. The mission that accomplished this historic landing was Apollo 11, crewed by Commander Neil Armstrong, Command Module Pilot Michael Collins, and Lunar Module Pilot Buzz Aldrin.
+
+## 2. Saturn V Launch Vehicle Specifications
+The Saturn V was a three-stage, liquid-fueled super heavy-lift launch vehicle developed under the direction of Wernher von Braun at the Marshall Space Flight Center. 
+- Height: 110.6 meters (363 feet)
+- Total Liftoff Mass: 2,970,000 kilograms (6,540,000 pounds)
+- Liftoff Thrust: 35.1 meganewtons (7,891,000 pounds-force)
+- Stages: S-IC (first stage using RP-1 fuel and LOX), S-II (second stage using liquid hydrogen and LOX), and S-IVB (third stage with a single J-2 engine for translunar injection).
+
+## 3. The Lunar Module (Eagle)
+The Apollo Lunar Module (LM) was a two-stage vehicle designed by Grumman Aerospace to ferry two astronauts from lunar orbit to the lunar surface and back to the Command/Service Module (CSM).
+- Descent Stage: Contained the landing gear, descent radar, landing engine (variable thrust from 1,050 to 9,850 lbf), and scientific equipment packages known as ALSEP.
+- Ascent Stage: Contained the pressurized crew cabin, life support systems, guidance computer (AGC), reaction control system (RCS), and the ascent engine producing 3,500 lbf of fixed thrust.
+
+## 4. Lunar Surface Operations & Scientific Experiments
+During their 21 hours and 36 minutes stay on the lunar surface at the Sea of Tranquility (Mare Tranquillitatis), Armstrong and Aldrin spent 2 hours, 31 minutes outside the spacecraft in extravehicular activity (EVA). They collected 21.55 kilograms (47.51 pounds) of lunar material, including basalt rock and breccia samples. They also deployed the Early Apollo Surface Experiments Package (EASEP), which included a passive seismometer and a laser ranging retroreflector (LRRR) that continues to operate today.
+
+## 5. Return and Splashdown
+Following lunar ascent and rendezvous with the Command Module Columbia in lunar orbit, the Service Module performed the trans-earth injection (TEI) burn. Apollo 11 splashed down safely in the Pacific Ocean, approximately 812 nautical miles southwest of Hawaii, on July 24, 1969, and was recovered by the aircraft carrier USS Hornet.
